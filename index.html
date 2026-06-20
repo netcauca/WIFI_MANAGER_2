@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <!-- Las llamadas a la API van a /nbi/ que Nginx redirige a GenieACS internamente -->
   <title>NetCauca – Gestor de WiFi</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <style>
@@ -259,13 +260,7 @@
     <div class="card-title">🔧 Cambio de WiFi por Cliente</div>
     <p class="card-desc">Ingresa el número de serie del router del cliente y los nuevos datos de la red WiFi.</p>
 
-    <!-- Servidor GenieACS -->
-    <div class="config-row">
-      <div class="form-group">
-        <label for="serverUrl">🌐 Servidor GenieACS (NBI)</label>
-        <input type="text" id="serverUrl" value="http://router.netcauca.com:7557" placeholder="http://tu-servidor:7557"/>
-      </div>
-    </div>
+    <!-- El servidor GenieACS se conecta via proxy /nbi/ configurado en Nginx -->
 
     <!-- Serial -->
     <div class="form-group">
@@ -276,6 +271,7 @@
           🔍 Buscar
         </button>
       </div>
+      <p class="hint">El número de serie está en la etiqueta del router o en GenieACS bajo "Serial number".</p>
       <p class="hint">El número de serie está en la etiqueta del router o en GenieACS bajo "Serial number".</p>
     </div>
 
@@ -348,7 +344,7 @@
 
   async function buscarDispositivo() {
     const serial = document.getElementById('serial').value.trim().toUpperCase();
-    const serverUrl = document.getElementById('serverUrl').value.trim().replace(/\/$/, '');
+    const serverUrl = '/nbi'; // Proxy Nginx hacia GenieACS NBI
     const btnBuscar = document.getElementById('btnBuscar');
     const deviceInfo = document.getElementById('deviceInfo');
 
@@ -416,7 +412,7 @@
       document.getElementById('btnText').textContent = '✅ Aplicar cambios de WiFi';
 
     } catch (err) {
-      mostrarAlerta('alertBuscar', 'error', '🔌', `No se pudo conectar al servidor GenieACS.<br><small>Detalle: ${err.message}</small><br><br><strong>¿Está correcto el servidor? Verifica que sea accesible desde este navegador y que permita CORS.</strong>`);
+      mostrarAlerta('alertBuscar', 'error', '🔌', `No se pudo conectar al servidor GenieACS.<br><small>Detalle: ${err.message}</small><br><br><strong>Verifica que el servidor GenieACS esté corriendo y que el contenedor wifi-manager esté en la misma red Docker que genieacs.</strong>`);
     } finally {
       btnBuscar.textContent = '🔍 Buscar';
       btnBuscar.disabled = false;
@@ -428,7 +424,7 @@
 
     const nuevoSSID = document.getElementById('nuevoSSID').value.trim();
     const nuevaPass = document.getElementById('nuevaPass').value.trim();
-    const serverUrl = document.getElementById('serverUrl').value.trim().replace(/\/$/, '');
+    const serverUrl = '/nbi'; // Proxy Nginx hacia GenieACS NBI
 
     // Validaciones
     if (!nuevoSSID) {
