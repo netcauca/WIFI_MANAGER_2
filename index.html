@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NetCauca – Gestor de WiFi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface2: #21262d;
+      --border: #30363d;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --accent-light: #1e3a5f;
+      --success: #16a34a;
+      --success-light: #14532d;
+      --error: #dc2626;
+      --error-light: #450a0a;
+      --warning: #d97706;
+      --warning-light: #451a03;
+      --text: #e6edf3;
+      --text-muted: #7d8590;
+      --text-dim: #484f58;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 40px 16px 80px;
+    }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .logo-icon {
+      width: 48px; height: 48px;
+      background: linear-gradient(135deg, var(--accent), #7c3aed);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+    }
+    .logo-text { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+    .logo-text span { color: var(--accent); }
+    .subtitle { color: var(--text-muted); font-size: 14px; margin-top: 4px; }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      width: 100%;
+      max-width: 520px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+    .card-title {
+      font-size: 18px; font-weight: 600;
+      margin-bottom: 6px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-desc {
+      font-size: 13px; color: var(--text-muted);
+      margin-bottom: 28px; line-height: 1.6;
+    }
+
+    /* ── Config Row ── */
+    .config-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+      align-items: flex-end;
+    }
+    .config-row .form-group { flex: 1; margin-bottom: 0; }
+    .config-row .btn-sm {
+      height: 42px;
+      padding: 0 16px;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    /* ── Form ── */
+    .form-group { margin-bottom: 18px; }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 7px;
+      letter-spacing: 0.3px;
+    }
+    label .required { color: var(--error); margin-left: 2px; }
+
+    .input-wrap { position: relative; }
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 14px;
+      padding: 10px 14px;
+      transition: border-color .2s, box-shadow .2s;
+      outline: none;
+    }
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37,99,235,.2);
+    }
+    input::placeholder { color: var(--text-dim); }
+
+    .toggle-pass {
+      position: absolute;
+      right: 12px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      color: var(--text-muted); cursor: pointer;
+      font-size: 16px; padding: 2px;
+      transition: color .2s;
+    }
+    .toggle-pass:hover { color: var(--text); }
+
+    .hint { font-size: 11px; color: var(--text-dim); margin-top: 5px; }
+
+    /* ── Divider ── */
+    .divider {
+      display: flex; align-items: center; gap: 10px;
+      margin: 24px 0;
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1;
+      height: 1px; background: var(--border);
+    }
+    .divider span { font-size: 12px; color: var(--text-dim); }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 12px 20px;
+      border: none; border-radius: 8px;
+      font-family: inherit; font-size: 15px; font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .btn-secondary:hover { background: var(--border); }
+
+    /* ── Spinner ── */
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Alert ── */
+    .alert {
+      display: none;
+      padding: 14px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.6;
+      margin-top: 18px;
+      border-left: 4px solid;
+    }
+    .alert.show { display: flex; gap: 10px; align-items: flex-start; }
+    .alert-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+    .alert-success { background: var(--success-light); border-color: var(--success); color: #4ade80; }
+    .alert-error   { background: var(--error-light);   border-color: var(--error);   color: #f87171; }
+    .alert-warning { background: var(--warning-light); border-color: var(--warning); color: #fbbf24; }
+    .alert-info    { background: var(--accent-light);  border-color: var(--accent);  color: #93c5fd; }
+
+    /* ── Device Info ── */
+    .device-info {
+      display: none;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-top: 14px;
+    }
+    .device-info.show { display: block; }
+    .device-info-title { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-bottom: 10px; text-transform: uppercase; letter-spacing: .5px; }
+    .device-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 13px; border-bottom: 1px solid var(--border); }
+    .device-row:last-child { border-bottom: none; }
+    .device-row .key { color: var(--text-muted); }
+    .device-row .val { font-weight: 500; font-family: monospace; font-size: 12px; color: var(--text); }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+    .status-online { background: #22c55e; box-shadow: 0 0 6px #22c55e; }
+    .status-offline { background: #6b7280; }
+
+    /* ── Footer ── */
+    .footer {
+      margin-top: 32px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    .config-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .config-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">📡</div>
+      <div class="logo-text">Net<span>Cauca</span></div>
+    </div>
+    <p class="subtitle">Panel de Gestión de Routers — GenieACS</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🔧 Cambio de WiFi por Cliente</div>
+    <p class="card-desc">Ingresa el número de serie del router del cliente y los nuevos datos de la red WiFi.</p>
+
+    <!-- Servidor GenieACS -->
+    <div class="config-row">
+      <div class="form-group">
+        <label for="serverUrl">🌐 Servidor GenieACS (NBI)</label>
+        <input type="text" id="serverUrl" value="http://router.netcauca.com:7557" placeholder="http://tu-servidor:7557"/>
+      </div>
+    </div>
+
+    <!-- Serial -->
+    <div class="form-group">
+      <label for="serial">📋 Número de Serie del Router <span class="required">*</span></label>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="serial" placeholder="Ej: 22611KK001710" style="text-transform:uppercase;"/>
+        <button class="btn btn-secondary btn-sm" onclick="buscarDispositivo()" id="btnBuscar" style="height:42px; padding:0 16px; font-size:13px; white-space:nowrap; width:auto;">
+          🔍 Buscar
+        </button>
+      </div>
+      <p class="hint">El número de serie está en la etiqueta del router o en GenieACS bajo "Serial number".</p>
+    </div>
+
+    <!-- Info del dispositivo -->
+    <div class="device-info" id="deviceInfo">
+      <div class="device-info-title">📌 Dispositivo encontrado</div>
+      <div class="device-row"><span class="key">Modelo</span><span class="val" id="infoModelo">—</span></div>
+      <div class="device-row"><span class="key">Serial</span><span class="val" id="infoSerial">—</span></div>
+      <div class="device-row"><span class="key">IP</span><span class="val" id="infoIP">—</span></div>
+      <div class="device-row"><span class="key">WiFi actual</span><span class="val" id="infoSSID">—</span></div>
+      <div class="device-row"><span class="key">Estado</span><span class="val" id="infoEstado">—</span></div>
+      <div class="device-row"><span class="key">Último contacto</span><span class="val" id="infoInform">—</span></div>
+    </div>
+
+    <div class="alert" id="alertBuscar"></div>
+
+    <div class="divider"><span>NUEVOS DATOS WIFI</span></div>
+
+    <!-- Nuevo SSID -->
+    <div class="form-group">
+      <label for="nuevoSSID">📶 Nuevo nombre de red (SSID) <span class="required">*</span></label>
+      <input type="text" id="nuevoSSID" placeholder="Ej: NETCAUCA_Juan_Perez" maxlength="32"/>
+      <p class="hint">Máximo 32 caracteres. Sin caracteres especiales raros.</p>
+    </div>
+
+    <!-- Nueva contraseña -->
+    <div class="form-group">
+      <label for="nuevaPass">🔑 Nueva contraseña WiFi <span class="required">*</span></label>
+      <div class="input-wrap">
+        <input type="password" id="nuevaPass" placeholder="Mínimo 8 caracteres" maxlength="63"/>
+        <button class="toggle-pass" onclick="togglePass()" id="toggleBtn">👁️</button>
+      </div>
+      <p class="hint">Entre 8 y 63 caracteres. Usa letras y números para mayor seguridad.</p>
+    </div>
+
+    <!-- Botón principal -->
+    <button class="btn btn-primary" onclick="aplicarCambios()" id="btnAplicar" disabled>
+      <div class="spinner" id="spinner"></div>
+      <span id="btnText">🔒 Busca un dispositivo primero</span>
+    </button>
+
+    <div class="alert" id="alertResult"></div>
+  </div>
+
+  <div class="footer">
+    <p>GenieACS NBI API — Todos los cambios se aplican en el próximo reporte del router (máx. 5 min)</p>
+  </div>
+
+<script>
+  let dispositivoId = null;
+  let passVisible = false;
+
+  function togglePass() {
+    const input = document.getElementById('nuevaPass');
+    const btn = document.getElementById('toggleBtn');
+    passVisible = !passVisible;
+    input.type = passVisible ? 'text' : 'password';
+    btn.textContent = passVisible ? '🙈' : '👁️';
+  }
+
+  function mostrarAlerta(elementId, tipo, icono, mensaje) {
+    const el = document.getElementById(elementId);
+    el.className = `alert alert-${tipo} show`;
+    el.innerHTML = `<span class="alert-icon">${icono}</span><div>${mensaje}</div>`;
+  }
+
+  function ocultarAlerta(elementId) {
+    document.getElementById(elementId).className = 'alert';
+  }
+
+  async function buscarDispositivo() {
+    const serial = document.getElementById('serial').value.trim().toUpperCase();
+    const serverUrl = document.getElementById('serverUrl').value.trim().replace(/\/$/, '');
+    const btnBuscar = document.getElementById('btnBuscar');
+    const deviceInfo = document.getElementById('deviceInfo');
+
+    if (!serial) {
+      mostrarAlerta('alertBuscar', 'warning', '⚠️', 'Por favor ingresa el número de serie del router.');
+      return;
+    }
+
+    ocultarAlerta('alertBuscar');
+    deviceInfo.classList.remove('show');
+    btnBuscar.textContent = '⏳ Buscando...';
+    btnBuscar.disabled = true;
+    dispositivoId = null;
+    document.getElementById('btnAplicar').disabled = true;
+    document.getElementById('btnText').textContent = '🔒 Busca un dispositivo primero';
+
+    try {
+      const query = JSON.stringify({"_deviceId._SerialNumber": serial});
+      const projection = "_id,_deviceId,InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID,InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANIPConnection.1.ExternalIPAddress,_lastInform,_registered";
+      const url = `${serverUrl}/devices?query=${encodeURIComponent(query)}&projection=${encodeURIComponent(projection)}`;
+
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error(`Error del servidor: ${resp.status} ${resp.statusText}`);
+
+      const devices = await resp.json();
+
+      if (!devices || devices.length === 0) {
+        mostrarAlerta('alertBuscar', 'error', '❌', `No se encontró ningún router con el serial <strong>${serial}</strong>. Verifica el número e intenta de nuevo.`);
+        return;
+      }
+
+      const dev = devices[0];
+      dispositivoId = dev['_id'];
+
+      // Extraer datos
+      const modelo = dev['_deviceId'] ? `${dev['_deviceId']['_Manufacturer'] || ''} ${dev['_deviceId']['_ProductClass'] || ''}`.trim() : 'Desconocido';
+      const serialNum = dev['_deviceId'] ? dev['_deviceId']['_SerialNumber'] : serial;
+      const ssidActual = dev['InternetGatewayDevice']?.LANDevice?.[1]?.WLANConfiguration?.[1]?.SSID?._value || 'No disponible';
+      const ipActual = dev['InternetGatewayDevice']?.WANDevice?.[1]?.WANConnectionDevice?.[1]?.WANIPConnection?.[1]?.ExternalIPAddress?._value || 'No disponible';
+
+      // Calcular estado (online si el último inform fue en los últimos 10 minutos)
+      const lastInform = dev['_lastInform'];
+      let estadoHtml = '<span class="status-dot status-offline"></span> Offline';
+      let lastInformStr = 'Desconocido';
+      if (lastInform) {
+        const diffMs = Date.now() - new Date(lastInform).getTime();
+        const diffMin = Math.floor(diffMs / 60000);
+        if (diffMin < 10) {
+          estadoHtml = '<span class="status-dot status-online"></span> Online';
+        }
+        lastInformStr = diffMin < 1 ? 'Hace menos de 1 min' : `Hace ${diffMin} minuto(s)`;
+      }
+
+      document.getElementById('infoModelo').textContent = modelo || 'Desconocido';
+      document.getElementById('infoSerial').textContent = serialNum;
+      document.getElementById('infoIP').textContent = ipActual;
+      document.getElementById('infoSSID').textContent = ssidActual;
+      document.getElementById('infoEstado').innerHTML = estadoHtml;
+      document.getElementById('infoInform').textContent = lastInformStr;
+
+      deviceInfo.classList.add('show');
+      mostrarAlerta('alertBuscar', 'info', '✅', `Router encontrado: <strong>${modelo}</strong> — Serial: <strong>${serialNum}</strong>`);
+
+      document.getElementById('btnAplicar').disabled = false;
+      document.getElementById('btnText').textContent = '✅ Aplicar cambios de WiFi';
+
+    } catch (err) {
+      mostrarAlerta('alertBuscar', 'error', '🔌', `No se pudo conectar al servidor GenieACS.<br><small>Detalle: ${err.message}</small><br><br><strong>¿Está correcto el servidor? Verifica que sea accesible desde este navegador y que permita CORS.</strong>`);
+    } finally {
+      btnBuscar.textContent = '🔍 Buscar';
+      btnBuscar.disabled = false;
+    }
+  }
+
+  async function aplicarCambios() {
+    if (!dispositivoId) return;
+
+    const nuevoSSID = document.getElementById('nuevoSSID').value.trim();
+    const nuevaPass = document.getElementById('nuevaPass').value.trim();
+    const serverUrl = document.getElementById('serverUrl').value.trim().replace(/\/$/, '');
+
+    // Validaciones
+    if (!nuevoSSID) {
+      mostrarAlerta('alertResult', 'warning', '⚠️', 'El campo "Nuevo nombre de red (SSID)" es obligatorio.');
+      return;
+    }
+    if (!nuevaPass) {
+      mostrarAlerta('alertResult', 'warning', '⚠️', 'El campo "Nueva contraseña WiFi" es obligatorio.');
+      return;
+    }
+    if (nuevaPass.length < 8) {
+      mostrarAlerta('alertResult', 'warning', '⚠️', 'La contraseña debe tener al menos 8 caracteres.');
+      return;
+    }
+
+    // Mostrar spinner
+    const spinner = document.getElementById('spinner');
+    const btnText = document.getElementById('btnText');
+    const btnAplicar = document.getElementById('btnAplicar');
+    spinner.style.display = 'block';
+    btnText.textContent = 'Enviando cambios...';
+    btnAplicar.disabled = true;
+    ocultarAlerta('alertResult');
+
+    try {
+      const encodedId = encodeURIComponent(dispositivoId);
+      const taskUrl = `${serverUrl}/devices/${encodedId}/tasks`;
+
+      const task = {
+        name: "setParameterValues",
+        parameterValues: [
+          ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID", nuevoSSID, "xsd:string"],
+          ["InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.X_TP_PreSharedKey", nuevaPass, "xsd:string"]
+        ]
+      };
+
+      const resp = await fetch(taskUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(task)
+      });
+
+      if (resp.status === 200 || resp.status === 202) {
+        mostrarAlerta('alertResult', 'success', '🎉',
+          `<strong>¡Cambio enviado correctamente!</strong><br>
+          📶 Nuevo SSID: <strong>${nuevoSSID}</strong><br>
+          🔑 Nueva contraseña: <strong>${nuevaPass}</strong><br><br>
+          ⏳ El router aplicará los cambios en su próximo reporte automático (máximo <strong>5 minutos</strong>). 
+          Si desea que sea inmediato, reinicie el router del cliente.`
+        );
+        // Limpiar campos
+        document.getElementById('nuevoSSID').value = '';
+        document.getElementById('nuevaPass').value = '';
+      } else {
+        const errBody = await resp.text();
+        throw new Error(`Estado ${resp.status}: ${errBody}`);
+      }
+
+    } catch (err) {
+      mostrarAlerta('alertResult', 'error', '❌',
+        `No se pudo enviar el cambio al servidor.<br><small>${err.message}</small>`
+      );
+    } finally {
+      spinner.style.display = 'none';
+      btnText.textContent = '✅ Aplicar cambios de WiFi';
+      btnAplicar.disabled = false;
+    }
+  }
+
+  // Permitir buscar con Enter
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('serial').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') buscarDispositivo();
+    });
+  });
+</script>
+</body>
+</html>
